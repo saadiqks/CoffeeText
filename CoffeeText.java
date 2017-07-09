@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.StringTokenizer;
 import javax.swing.*;
 import javax.swing.text.*;
 
@@ -8,13 +9,13 @@ public class CoffeeText extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private JTextArea area = new JTextArea(30,70);
+	private JTextArea area = new JTextArea(30,70); 
 	private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
 	private String currentFile = "Untitled";
 	private boolean changed = false; 
+	JLabel bottom = new JLabel();
 	
 	public CoffeeText() {
-		
 		JScrollPane scroll = new JScrollPane(area,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(scroll, BorderLayout.CENTER);
@@ -57,11 +58,20 @@ public class CoffeeText extends JFrame {
 		saveFile.setEnabled(false);
 		saveFileAs.setEnabled(false);
 		
+		add(bottom, BorderLayout.PAGE_END);
+		bottom.setPreferredSize(new Dimension(this.getWidth(), 25));
+		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pack();
+		
 		area.addKeyListener(kl);
+		area.addKeyListener(k2);
+		
+		Font myFont = new Font("Consolas", Font.PLAIN, 18);
+		area.setFont(myFont);	
+		
 		setTitle(currentFile);
-		setVisible(true);
+		setVisible(true);			
 	}
 	
 	private KeyListener kl = new KeyAdapter() {
@@ -69,6 +79,13 @@ public class CoffeeText extends JFrame {
 			changed = true;
 			saveFile.setEnabled(true);
 			saveFileAs.setEnabled(true);
+		}
+	};
+	
+	private KeyListener k2 = new KeyAdapter() {
+		public void keyPressed(KeyEvent e) {
+			StringTokenizer st = new StringTokenizer(area.getText());
+			bottom.setText(st.countTokens() + " words");
 		}
 	};
 	
@@ -160,10 +177,9 @@ public class CoffeeText extends JFrame {
 		}
 	};
 	
-	ActionMap m = area.getActionMap();
-	Action cut = m.get(DefaultEditorKit.cutAction);
-	Action copy = m.get(DefaultEditorKit.copyAction);
-	Action paste = m.get(DefaultEditorKit.pasteAction);
+	ActionMap am = area.getActionMap();
+	Action cut = am.get(DefaultEditorKit.cutAction), copy = am.get(DefaultEditorKit.copyAction), 
+			paste = am.get(DefaultEditorKit.pasteAction);
 	
 	private void saveFileAs() {
 		if (dialog.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -193,17 +209,21 @@ public class CoffeeText extends JFrame {
 		
 		catch (IOException e) {
 			Toolkit.getDefaultToolkit().beep();
-			JOptionPane.showMessageDialog(this,"Editor can't find the file called "+fileName);
+			JOptionPane.showMessageDialog(this,"Editor can't find the file called " 
+			+ fileName);
 		}
 	}
 	
 	private void saveFile(String fileName) {
 		try {
 			FileWriter w = new FileWriter(fileName);
+			
 			area.write(w);
 			w.close();
+			
 			currentFile = fileName;
 			setTitle(currentFile);
+			
 			changed = false;
 			saveFile.setEnabled(false);
 		}
